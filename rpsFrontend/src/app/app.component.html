@@ -1,7 +1,8 @@
-<main class="main">
-  <h1> Rock Paper Scissors!</h1>
-  <video id="video" autoplay playsinline></video>
-  <button id="takePic" (click)="takePicture()"> Take Picture! </button>
-  <!-- Stores the captured frame -->
-  <canvas id="canvas"></canvas>
+<main class="h-screen flex flex-col justify-center items-center">
+    <h2 class="text-4xl font-extrabold">Rock Paper Scissors!</h2>
+    <div class="flex">
+        <div id="action" class="">
+            <app-user-video></app-user-video>
+        </div>
+    </div>
 </main>
