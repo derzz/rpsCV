@@ -6,6 +6,15 @@ import numpy as np
 from keras import models
 import random as rng
 
+def findIfClose(cnt1, cnt2):
+    row1, row2 = cnt1.shape[0], cnt2.shape[0]
+    for i in range(row1):
+        for j in range(row2):
+            dist = np.linalg.norm(cnt1[i] - cnt2[j])
+            if abs(dist) < 5:
+                return True
+            elif i == row1 - 1 and j == row2 - 1:
+                return False
 
 def resize():
     img = Image.open('parse.png')
@@ -14,45 +23,56 @@ def resize():
     print("finished resize and recoloration")
     return np.array(img) / 255.0
 
-
-# Converts parse.png to a green background
+# Converts parse.png to a green background by forming a mask of the image
 def greenBg(val):
-    color = (255, 255, 255)
-    threshold = val
+    # Load image
     img = cv2.imread('parse.png')
-    padding = 1
-    img = cv2.copyMakeBorder(img, padding, padding, padding, padding, cv2.BORDER_CONSTANT, value=(0, 0, 0))
     src_gray = cv2.blur(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), (3, 3))
 
     # Detect edges using Canny
-    canny_output = cv2.Canny(src_gray, threshold, threshold * 2)
+    threshold = val
+    canny_output = cv2.Canny(src_gray, threshold, threshold * 1.75)
+
+    # Dilate to close small gaps
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    dilated = cv2.dilate(canny_output, kernel, iterations=3)
 
     # Find contours
-    contours, _ = cv2.findContours(canny_output, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Find the convex hull object for each contour
-    hull_list = []
-    for i in range(len(contours)):
-        hull = cv2.convexHull(contours[i])
-        hull_list.append(hull)
+    # Create a blank mask
+    mask = np.zeros_like(src_gray, dtype=np.uint8)
 
-    # Draw contours + hull results
-    mask = np.zeros((canny_output.shape[0], canny_output.shape[1]), dtype=np.uint8)
+    # Filter and draw only large contours
+    for contour in contours:
+        cv2.drawContours(mask, [contour], -1, 255, thickness=cv2.FILLED)
 
-    # Draw filled contours on the mask
-    # TODO May need to reduce background noise
-    for i in range(len(contours)):
-        cv2.drawContours(mask, contours, i, 255, -1)
+    # Apply morphological closing to fill gaps
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
 
-    # Use the mask to keep only the relevant parts of the image
-    # TODO Mask is not working and not cropping out the part of the image
-    result = cv2.bitwise_and(img, img, mask=mask)
+    # Apply flood fill to ensure interior gaps are filled
+    h, w = mask.shape
+    flood_fill_mask = mask.copy()
+    cv2.floodFill(flood_fill_mask, None, (w // 2, h // 2), 255)
 
-    # Save the results
-    cv2.imwrite('hull.png', result)
+    # Combine original mask and flood-filled regions
+    filled_mask = cv2.bitwise_or(mask, flood_fill_mask)
 
+    # Save the mask
+    cv2.imwrite('mask.png', filled_mask)
 
+    # Create a green background
+    green_background = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
+    green_background[:] = (0, 255, 0)  # Green color
 
+    # Apply the mask to the original image
+    result = cv2.bitwise_and(img, img, mask=filled_mask)
+
+    # Combine result with the green background
+    green_bg_result = np.where(filled_mask[:, :, None] == 255, result, green_background)
+
+    # Save the final result
+    cv2.imwrite('parse.png', green_bg_result)
 
 
 
@@ -72,7 +92,7 @@ def analyze():
     # Img should be in handFrame.png
     handFrame = img[max(0, ymin - 25):ymax + 25, max(0, xmin - 25):xmax + 25]
     cv2.imwrite('parse.png', handFrame)
-    greenBg(75)
+    greenBg(60)
     prediction = model.predict(np.expand_dims(resize(), axis=0))
     PAPER, ROCK, SCISSORS = prediction[0][0], prediction[0][1], prediction[0][2]
     winning, prob = None, None
