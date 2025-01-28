@@ -1,0 +1,11 @@
+fastapi==0.115.7
+keras==3.7.0
+mediapipe==0.10.20
+numpy==2.2.2
+opencv_contrib_python==4.10.0.84
+opencv_python==4.10.0.84
+Pillow==11.1.0
+pydantic==2.10.6
+setuptools==75.1.0
+typing_extensions==4.12.2
+uvicorn==0.34.0
