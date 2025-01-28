@@ -10,22 +10,9 @@
         </div>
 
         <div class="flex border-black border-2 col-span-1 flex-col justify-between" id="instructions">
-            <div>
-                @if(responseData){
-                <p style="color: red;">
-                    Probability of {{responseData.prob}}
-                </p>
-                }
-                @if(errorMsg){
-                <p>
-                    {{this.errorMsg}}
-                </p>
-                }
-            </div>
-
             <div class="flex flex-grow justify-center text-5xl items-center">
                 @if(winner){
-                    {{this.winner}}
+                {{this.winner}}
                 }
             </div>
 
@@ -33,7 +20,7 @@
                 {{this.humanScore}} - {{this.robotScore}}
             </div>
             <div class="flex items-end">
-                <app-bar-chart class="w-full"></app-bar-chart>
+                <app-bar-chart [rock]="rock" [paper]="paper" [scissors]="scissors" class="w-full"></app-bar-chart>
             </div>
         </div>
 
@@ -55,9 +42,9 @@
     </div>
 
     <div class="flex justify-center">
-        @if(responseData){
+        @if(errorMsg){
         <p>
-            {{winner}}
+            {{this.errorMsg}}
         </p>
         }
     </div>

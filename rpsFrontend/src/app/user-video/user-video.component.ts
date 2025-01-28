@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BarChartComponent } from '../bar-chart/bar-chart.component';
+
 @Component({
   selector: 'app-user-video',
   standalone: true,
@@ -27,9 +28,13 @@ export class UserVideoComponent implements OnInit {
   robotResponse = '';
   responseEmoji = '';
   robotEmoji = '';
-  winner = ''; 
+  winner = 'Who will win?';
   robotScore = 0;
   humanScore = 0;
+  rock = 0;
+  paper = 0;
+  scissors = 0;
+
 
   async ngOnInit() {
     this.video = document.getElementById('video') as HTMLVideoElement;
@@ -75,7 +80,7 @@ export class UserVideoComponent implements OnInit {
     const userResponse = this.responseData.rps;
     const robotResponse = this.robotResponse;
 
-    if (userResponse === robotResponse) {
+    if (userResponse === robotResponse){
       this.winner = "It's a tie!";
     } else if (
       (userResponse === 'Rock' && robotResponse === 'Scissors') ||
@@ -88,10 +93,14 @@ export class UserVideoComponent implements OnInit {
       this.winner = 'Robot wins!';
       this.robotScore += 1;
     }
+
+    this.rock = this.responseData.rock;
+    this.paper = this.responseData.paper;
+    this.scissors = this.responseData.scissors;
+    console.log("decision finished")
   }
 
   takePicture() {
-    // TODO Set 3 second timmer
     const context = this.canvas.getContext('2d');
     this.errorMsg = '';
     this.responseData = null;
