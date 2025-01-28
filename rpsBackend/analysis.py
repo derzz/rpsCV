@@ -4,7 +4,7 @@ import HandTrackingDynamic as htd
 from PIL import Image
 import numpy as np
 from keras import models
-import random as rng
+import os
 
 def findIfClose(cnt1, cnt2):
     row1, row2 = cnt1.shape[0], cnt2.shape[0]
@@ -144,6 +144,9 @@ def analyze():
     else:
         winning = "Scissors"
         prob = SCISSORS
+
+    os.remove('./handFrame.png')
+    os.remove('./parse.png')
 
     return {"rps": winning, "prob": round(prob.item(), 2), "rock": round(ROCK.item(), 2),
             "paper": round(PAPER.item(), 2),
